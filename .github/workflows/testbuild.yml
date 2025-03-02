@@ -24,7 +24,7 @@ jobs:
       run: |
         mkdir -p build
         cd build
-        cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/${{ matrix.arch }}-toolchain.cmake ../source/compiler
+        cmake -DCMAKE_TOOLCHAIN_FILE=../${{ matrix.arch }}-toolchain.cmake ../source/compiler
 
     - name: Build
       run: |
