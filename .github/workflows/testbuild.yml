@@ -1,4 +1,4 @@
-name: Build Pawn Compiler
+name: Build and Upload Artifacts
 
 on:
   workflow_dispatch
@@ -8,19 +8,38 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [armv7-a, armv8]
+        arch:
+          - aarch64
+          - armv7
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: all
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf cmake make
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+    - name: Setup build environment
+      run: |
+        mkdir -p build
+        cd build
+        cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/${{ matrix.arch }}-toolchain.cmake ../source/compiler
 
-      - name: Build for ${{ matrix.arch }}
-        run: |
-          docker buildx build --platform linux/${{ matrix.arch }} -t pawn-compiler:${{ matrix.arch }} .
+    - name: Build
+      run: |
+        cd build
+        make
+
+    - name: Copy out build artifacts
+      run: |
+        cp build/libpawnc.so libpawnc-${{ matrix.arch }}.so
+        cp build/pawncc pawncc-${{ matrix.arch }}
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: pawn-compiler-${{ matrix.arch }}
+        path: |
+          ./libpawnc-${{ matrix.arch }}.so
+          ./pawncc-${{ matrix.arch }}
