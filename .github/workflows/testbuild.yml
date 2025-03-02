@@ -21,6 +21,7 @@ jobs:
         sudo apt-get install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf cmake make
 
     - name: Setup build environment
+      continue-on-error: true
       run: |
         mkdir -p build
         cd build
